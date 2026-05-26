@@ -22,7 +22,7 @@ echo "=== kiosk-postinstall start $(date -Is) user=$KIOSK_USER home=$HOME_DIR ==
 
 # 1) Edge policy
 install -d -m 0755 /etc/opt/edge/policies/managed
-cat > /etc/opt/edge/policies/managed/policy.json <<'EOF'
+cat > /etc/opt/edge/policies/managed/policy.json <<'POLICY_EOF'
 {
   "URLBlocklist": ["*"],
   "URLAllowlist": [
@@ -57,19 +57,67 @@ cat > /etc/opt/edge/policies/managed/policy.json <<'EOF'
   "InPrivateModeAvailability": 1,
   "HideFirstRunExperience": true
 }
-EOF
+POLICY_EOF
 
-# ... keep your header and policy part unchanged ...
-
-# 2) Kiosk launcher script (no nested heredocs inside)
+# 2) Kiosk launcher script
 install -d -m 0755 "$HOME_DIR/.local/bin"
 cat > "$HOME_DIR/.local/bin/gnome-kiosk-script" <<'KIOSK_EOF'
 #!/usr/bin/env bash
 set -u
+
 TIMEOUT=60
 COUNTER=0
 USER_PROFILE="/home/testuser/.edge-kiosk-profile"
 URL="https://www.microsoft.com/en-us/dynamics-365/products/business-central/sign-in"
+
+apply_kiosk_lite_restrictions() {
+  gsettings set org.gnome.shell favorite-apps "['microsoft-edge.desktop']"
+  gsettings set org.gnome.shell.extensions.dash-to-dock autohide false
+  gsettings set org.gnome.shell.extensions.dash-to-dock dock-fixed true
+  gsettings set org.gnome.shell.extensions.dash-to-dock intellihide false
+
+  mkdir -p /home/testuser/.local/share/applications
+
+  cat > /home/testuser/.local/share/applications/org.gnome.Nautilus.desktop <<'NAUTILUS_EOF'
+[Desktop Entry]
+Type=Application
+Name=Files
+NoDisplay=true
+Hidden=true
+NAUTILUS_EOF
+
+  cat > /home/testuser/.local/share/applications/firefox_firefox.desktop <<'FIREFOX_EOF'
+[Desktop Entry]
+Type=Application
+Name=Firefox
+NoDisplay=true
+Hidden=true
+FIREFOX_EOF
+
+  cat > /home/testuser/.local/share/applications/ubuntu-software.desktop <<'APPCTR1_EOF'
+[Desktop Entry]
+Type=Application
+Name=App Center
+NoDisplay=true
+Hidden=true
+APPCTR1_EOF
+
+  cat > /home/testuser/.local/share/applications/snap-store_ubuntu-software.desktop <<'APPCTR2_EOF'
+[Desktop Entry]
+Type=Application
+Name=App Center
+NoDisplay=true
+Hidden=true
+APPCTR2_EOF
+
+  cat > /home/testuser/.local/share/applications/snap-store_snap-store.desktop <<'APPCTR3_EOF'
+[Desktop Entry]
+Type=Application
+Name=App Center
+NoDisplay=true
+Hidden=true
+APPCTR3_EOF
+}
 
 (
 while true; do
@@ -79,16 +127,38 @@ while true; do
     sleep 2
     exit 0
   fi
+
   PROGRESS=$(( COUNTER * 100 / TIMEOUT ))
   echo "$PROGRESS"
   echo "# Очікування мережі: ${COUNTER}с з ${TIMEOUT}с..."
   sleep 1
   COUNTER=$(( COUNTER + 1 ))
+
   if [ "$COUNTER" -gt "$TIMEOUT" ]; then
     exit 1
   fi
 done
 ) | zenity --progress --title="Перевірка зв'язку" --text="Ініціалізація..." --percentage=0 --auto-close --no-cancel --width=420
+
+if [ "${PIPESTATUS[0]}" -eq 1 ]; then
+  CHOICE=$(zenity --list --column="Дія" --title="Помилка підключення" \
+    --text="Мережа не знайдена протягом 60 секунд. Що робити?" \
+    --width=420 --height=320 \
+    "Спробувати знову" \
+    "Перевірити налаштування мережі" \
+    "Перезавантажити" \
+    "Вимкнути комп'ютер")
+
+  case "$CHOICE" in
+    "Спробувати знову") exec "$0" ;;
+    "Перевірити налаштування мережі") nm-connection-editor; exec "$0" ;;
+    "Перезавантажити") systemctl reboot ;;
+    "Вимкнути комп'ютер") systemctl poweroff ;;
+    *) exit 0 ;;
+  esac
+fi
+
+apply_kiosk_lite_restrictions
 
 microsoft-edge "$URL" \
   --app="$URL" \
@@ -99,7 +169,10 @@ microsoft-edge "$URL" \
   --user-data-dir="$USER_PROFILE" \
   --disable-features=Translate,EdgeWallet,EdgeShopping &
 
-while pgrep -f microsoft-edge >/dev/null; do sleep 2; done
+while pgrep -f microsoft-edge >/dev/null; do
+  sleep 2
+done
+
 exec "$0"
 KIOSK_EOF
 
@@ -124,4 +197,7 @@ Exec=$HOME_DIR/.local/bin/gnome-kiosk-script
 X-GNOME-Autostart-enabled=true
 Terminal=false
 DESK_EOF
+
 chown -R "$KIOSK_UID:$KIOSK_GID" "$HOME_DIR/.config"
+
+echo "=== kiosk-postinstall done $(date -Is) ==="
