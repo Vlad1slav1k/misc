@@ -26,37 +26,64 @@ cat > /etc/opt/edge/policies/managed/policy.json <<'POLICY_EOF'
 {
   "URLBlocklist": ["*"],
   "URLAllowlist": [
+    "edge://policy",
+    "edge://newtab",
+
     "https://businesscentral.dynamics.com",
     "https://*.businesscentral.dynamics.com",
     "https://dynamics.com",
     "https://*.dynamics.com",
+
     "https://login.microsoftonline.com",
+    "https://device.login.microsoftonline.com",
     "https://microsoftonline.com",
     "https://*.microsoftonline.com",
     "https://*.microsoftonline-p.com",
+
     "https://msftauth.net",
     "https://*.msftauth.net",
     "https://msauth.net",
     "https://*.msauth.net",
     "https://*.msauthimages.net",
+
     "https://microsoft.com",
     "https://www.microsoft.com",
     "https://*.microsoft.com",
+
     "https://live.com",
     "https://*.live.com",
+    "https://login.live.com",
+    "https://login.microsoft.com",
+    "https://account.microsoft.com",
+
+    "https://intune.microsoft.com",
+    "https://endpoint.microsoft.com",
+    "https://portal.manage.microsoft.com",
+    "https://*.manage.microsoft.com",
+    "https://*.dm.microsoft.com",
+    "https://go.microsoft.com",
+
     "https://*.office.com",
     "https://*.office365.com",
+    "https://*.office.net",
     "https://*.windows.net",
     "https://*.azure.com",
     "https://*.sharepoint.com",
+
+    "https://msn.com",
+    "https://www.msn.com",
+    "https://ntp.msn.com",
+    "https://*.msn.com",
+
     "https://*.gstatic.com",
     "https://*.googleapis.com"
   ],
   "TranslateEnabled": false,
-  "AddressBarEditingEnabled": false,
+  "AddressBarEditingEnabled": true,
   "InPrivateModeAvailability": 1,
   "HideFirstRunExperience": true
 }
+
 POLICY_EOF
 
 # 2) Kiosk launcher script
