@@ -46,7 +46,7 @@ cat > /etc/opt/edge/policies/managed/policy.json <<'POLICY_EOF'
     "https://*.msauth.net",
     "https://*.msauthimages.net",
 
-    "https://microsoft.com",
+    "*://microsoft.com",
     "https://www.microsoft.com",
     "https://*.microsoft.com",
 
@@ -76,13 +76,24 @@ cat > /etc/opt/edge/policies/managed/policy.json <<'POLICY_EOF'
     "https://*.msn.com",
 
     "https://*.gstatic.com",
-    "https://*.googleapis.com"
+    "https://*.googleapis.com",
+
+    "*://aadcdn.msftauth.net/*",
+    "*://aadcdn.msauth.net/*",
+    "*://*.msedge.net/*",
+    "*://*.microsoftedge.com/*",
+    "*://*.azureedge.net/*",
+    "*://*.akadns.net/*",
+    "*://*.trafficmanager.net/*",
+    "*://*.bing.com/*"
+
   ],
   "TranslateEnabled": false,
   "AddressBarEditingEnabled": true,
   "InPrivateModeAvailability": 1,
   "HideFirstRunExperience": true
 }
+
 
 POLICY_EOF
 
