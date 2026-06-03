@@ -88,6 +88,7 @@ cat > /etc/opt/edge/policies/managed/policy.json <<'POLICY_EOF'
     "*://*.bing.com/*"
 
   ],
+  "DeveloperToolsAvailability": 0,
   "TranslateEnabled": false,
   "AddressBarEditingEnabled": true,
   "InPrivateModeAvailability": 1,
