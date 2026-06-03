@@ -28,6 +28,8 @@ cat > /etc/opt/edge/policies/managed/policy.json <<'POLICY_EOF'
   "URLAllowlist": [
     "edge://policy",
     "edge://newtab",
+    "edge://signin-internals",
+    "edge://version",
 
     "https://businesscentral.dynamics.com",
     "https://*.businesscentral.dynamics.com",
