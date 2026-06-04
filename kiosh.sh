@@ -23,40 +23,54 @@ echo "=== kiosk-postinstall start $(date -Is) user=$KIOSK_USER home=$HOME_DIR ==
 # 1) Edge policy
 install -d -m 0755 /etc/opt/edge/policies/managed
 cat > /etc/opt/edge/policies/managed/policy.json <<'EOF'
+
 {
   "URLBlocklist": ["*"],
   "URLAllowlist": [
+    "edge://policy",
+    "edge://newtab",
+
     "https://businesscentral.dynamics.com",
-    "https://*.businesscentral.dynamics.com",
     "https://dynamics.com",
-    "https://*.dynamics.com",
+
+
     "https://login.microsoftonline.com",
+    "https://device.login.microsoftonline.com",
     "https://microsoftonline.com",
-    "https://*.microsoftonline.com",
-    "https://*.microsoftonline-p.com",
+
+
     "https://msftauth.net",
-    "https://*.msftauth.net",
     "https://msauth.net",
-    "https://*.msauth.net",
-    "https://*.msauthimages.net",
+
     "https://microsoft.com",
     "https://www.microsoft.com",
-    "https://*.microsoft.com",
+
+
     "https://live.com",
-    "https://*.live.com",
-    "https://*.office.com",
-    "https://*.office365.com",
-    "https://*.windows.net",
-    "https://*.azure.com",
-    "https://*.sharepoint.com",
-    "https://*.gstatic.com",
-    "https://*.googleapis.com"
+    "https://login.live.com",
+    "https://login.microsoft.com",
+    "https://account.microsoft.com",
+
+    "https://intune.microsoft.com",
+    "https://endpoint.microsoft.com",
+    "https://portal.manage.microsoft.com",
+    "https://go.microsoft.com",
+
+
+    "https://msn.com",
+    "https://www.msn.com",
+    "https://ntp.msn.com",
+    "https://bing.com",
+    "https://pro-esupplies-com.access.mcas.ms.com"
+
   ],
+
   "TranslateEnabled": false,
-  "AddressBarEditingEnabled": false,
+  "AddressBarEditingEnabled": true,
   "InPrivateModeAvailability": 1,
   "HideFirstRunExperience": true
 }
+
 EOF
 
 # 2) Kiosk launcher script
