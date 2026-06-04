@@ -26,34 +26,25 @@ cat > /etc/opt/edge/policies/managed/policy.json <<'POLICY_EOF'
 {
   "URLBlocklist": ["*"],
   "URLAllowlist": [
-    "edge://policy",
-    "edge://newtab",
-    "edge://signin-internals",
-    "edge://version",
+    "edge://*",
 
     "https://businesscentral.dynamics.com",
-    "https://*.businesscentral.dynamics.com",
     "https://dynamics.com",
-    "https://*.dynamics.com",
+
 
     "https://login.microsoftonline.com",
     "https://device.login.microsoftonline.com",
     "https://microsoftonline.com",
-    "https://*.microsoftonline.com",
-    "https://*.microsoftonline-p.com",
+
 
     "https://msftauth.net",
-    "https://*.msftauth.net",
     "https://msauth.net",
-    "https://*.msauth.net",
-    "https://*.msauthimages.net",
 
-    "*://microsoft.com",
+    "https://microsoft.com",
     "https://www.microsoft.com",
-    "https://*.microsoft.com",
+
 
     "https://live.com",
-    "https://*.live.com",
     "https://login.live.com",
     "https://login.microsoft.com",
     "https://account.microsoft.com",
@@ -61,36 +52,15 @@ cat > /etc/opt/edge/policies/managed/policy.json <<'POLICY_EOF'
     "https://intune.microsoft.com",
     "https://endpoint.microsoft.com",
     "https://portal.manage.microsoft.com",
-    "https://*.manage.microsoft.com",
-    "https://*.dm.microsoft.com",
     "https://go.microsoft.com",
 
-    "https://*.office.com",
-    "https://*.office365.com",
-    "https://*.office.net",
-    "https://*.windows.net",
-    "https://*.azure.com",
-    "https://*.sharepoint.com",
 
     "https://msn.com",
     "https://www.msn.com",
     "https://ntp.msn.com",
-    "https://*.msn.com",
-
-    "https://*.gstatic.com",
-    "https://*.googleapis.com",
-
-    "*://aadcdn.msftauth.net/*",
-    "*://aadcdn.msauth.net/*",
-    "*://*.msedge.net/*",
-    "*://*.microsoftedge.com/*",
-    "*://*.azureedge.net/*",
-    "*://*.akadns.net/*",
-    "*://*.trafficmanager.net/*",
-    "*://*.bing.com/*"
 
   ],
-  "DeveloperToolsAvailability": 0,
+  
   "TranslateEnabled": false,
   "AddressBarEditingEnabled": true,
   "InPrivateModeAvailability": 1,
