@@ -1,0 +1,135 @@
+#cloud-config
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+    variant: ""
+  timezone: Europe/Kyiv
+  shutdown: reboot
+
+  identity:
+    realname: Test User
+    hostname: ubuntu-laptop
+    username: testuser
+    password: "$6$49vUQ3uJE0nehWS0$4PcSeyN7C06clRMOw3cUoSjpdtDugXG.fyIewV02VuHiayhkj6e1JtvScsz/I1sX33LSpTt06.WYLHs827WEa/"
+
+  ssh:
+    install-server: false
+    allow-pw: true
+
+  storage:
+    layout:
+      name: lvm
+      password: "12345678"
+
+  late-commands:
+    # 1) Expand root LV to full disk
+    - curtin in-target --target=/target -- bash -c "lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv && resize2fs /dev/ubuntu-vg/ubuntu-lv || true"
+
+    # 2) Base tooling + OpenSSH
+    - curtin in-target --target=/target -- bash -c "export DEBIAN_FRONTEND=noninteractive; timeout 600 apt-get -o Acquire::Retries=3 update"
+    - curtin in-target --target=/target -- bash -c "export DEBIAN_FRONTEND=noninteractive; timeout 900 apt-get install -y ca-certificates curl gnupg apt-transport-https openssh-server"
+    - curtin in-target --target=/target -- systemctl enable ssh
+
+    # 3) Microsoft repo keyring
+    - curtin in-target --target=/target -- bash -c "install -m 0755 -d /usr/share/keyrings"
+    - curtin in-target --target=/target -- bash -c "timeout 120 curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor --batch --yes -o /usr/share/keyrings/microsoft.gpg"
+
+    # 4) Microsoft Edge repo + install
+    - curtin in-target --target=/target -- bash -c "echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/edge stable main' > /etc/apt/sources.list.d/microsoft-edge.list"
+    - curtin in-target --target=/target -- bash -c "export DEBIAN_FRONTEND=noninteractive; timeout 600 apt-get -o Acquire::Retries=3 update"
+    - curtin in-target --target=/target -- bash -c "export DEBIAN_FRONTEND=noninteractive; timeout 1200 apt-get install -y microsoft-edge-stable"
+
+    # 5) Microsoft Defender for Endpoint (MDE)
+    - curtin in-target --target=/target -- bash -c "echo 'deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/24.04/prod noble main' > /etc/apt/sources.list.d/microsoft-prod.list"
+    - curtin in-target --target=/target -- bash -c "export DEBIAN_FRONTEND=noninteractive; timeout 600 apt-get -o Acquire::Retries=3 update"
+    - curtin in-target --target=/target -- bash -c "export DEBIAN_FRONTEND=noninteractive; timeout 1200 apt-get install -y mdatp"
+    - curtin in-target --target=/target -- systemctl enable mdatp || true
+
+    # 6) Intune installer
+    - curtin in-target --target=/target -- bash -c "timeout 120 curl -fsSL 'https://raw.githubusercontent.com/microsoft/shell-intune-samples/refs/heads/master/Linux/Intune%20Installer/installer.sh' -o /root/intune-installer.sh"
+    - curtin in-target --target=/target -- bash -c "chmod +x /root/intune-installer.sh"
+    - curtin in-target --target=/target -- bash -c "HOME=/root USER=root LOGNAME=root timeout 1800 bash /root/intune-installer.sh > /var/log/intune-installer.log 2>&1 || true"
+
+    # 7) kiosk install
+    - curtin in-target --target=/target -- bash -c "export DEBIAN_FRONTEND=noninteractive;  timeout 1200 apt-get install -y gnome-kiosk"
+root@linux-pxe-host:~# ^C
+root@linux-pxe-host:~# cat /srv/www/autoinstall/
+meta-data    user-data    vendor-data
+root@linux-pxe-host:~# cat /srv/www/autoinstall/meta-data
+instance-id: ubuntu-autoinstall-001
+local-hostname: ubuntu24
+root@linux-pxe-host:~# ^C
+root@linux-pxe-host:~# cat /srv/www/autoinstall/
+meta-data    user-data    vendor-data
+root@linux-pxe-host:~# cat /srv/www/autoinstall/vendor-data
+#cloud-config
+root@linux-pxe-host:~# ^C
+root@linux-pxe-host:~# cat /srv/www/autoinstall-kiosk/
+cat: /srv/www/autoinstall-kiosk/: Is a directory
+root@linux-pxe-host:~# cat /srv/www/autoinstall-kiosk/user-data
+#cloud-config
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+    variant: ""
+  timezone: Europe/Kyiv
+  shutdown: reboot
+  identity:
+    realname: Admin
+    hostname: ubuntu-laptop
+    username: admin
+    password: "$6$49vUQ3uJE0nehWS0$4PcSeyN7C06clRMOw3cUoSjpdtDugXG.fyIewV02VuHiayhkj6e1JtvScsz/I1sX33LSpTt06.WYLHs827WEa/"
+  ssh:
+    install-server: false
+    allow-pw: true
+  storage:
+    layout:
+      name: lvm
+      password: "12345678"
+  late-commands:
+    # 1) Expand root LV to full disk
+    - curtin in-target --target=/target -- bash -c "lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv && resize2fs /dev/ubuntu-vg/ubuntu-lv || true"
+
+    # 2) Base tooling + OpenSSH
+    - curtin in-target --target=/target -- bash -c "export DEBIAN_FRONTEND=noninteractive; timeout 600 apt-get -o Acquire::Retries=3 update"
+    - curtin in-target --target=/target -- bash -c "export DEBIAN_FRONTEND=noninteractive; timeout 900 apt-get install -y ca-certificates curl gnupg apt-transport-https openssh-server"
+    - curtin in-target --target=/target -- systemctl enable ssh
+
+    # 3) Microsoft repo keyring
+    - curtin in-target --target=/target -- bash -c "install -m 0755 -d /usr/share/keyrings"
+    - curtin in-target --target=/target -- bash -c "timeout 120 curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor --batch --yes -o /usr/share/keyrings/microsoft.gpg"
+
+    # 4) Microsoft Edge repo + install
+    - curtin in-target --target=/target -- bash -c "echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/edge stable main' > /etc/apt/sources.list.d/microsoft-edge.list"
+    - curtin in-target --target=/target -- bash -c "export DEBIAN_FRONTEND=noninteractive; timeout 600 apt-get -o Acquire::Retries=3 update"
+    - curtin in-target --target=/target -- bash -c "export DEBIAN_FRONTEND=noninteractive; timeout 1200 apt-get install -y microsoft-edge-stable"
+
+    # 5) Microsoft Defender for Endpoint (MDE)
+    - curtin in-target --target=/target -- bash -c "echo 'deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/24.04/prod noble main' > /etc/apt/sources.list.d/microsoft-prod.list"
+    - curtin in-target --target=/target -- bash -c "export DEBIAN_FRONTEND=noninteractive; timeout 600 apt-get -o Acquire::Retries=3 update"
+    - curtin in-target --target=/target -- bash -c "export DEBIAN_FRONTEND=noninteractive; timeout 1200 apt-get install -y mdatp"
+    - curtin in-target --target=/target -- systemctl enable mdatp || true
+
+    # 6) Intune installer
+    - curtin in-target --target=/target -- bash -c "timeout 120 curl -fsSL 'https://raw.githubusercontent.com/microsoft/shell-intune-samples/refs/heads/master/Linux/Intune%20Installer/installer.sh' -o /root/intune-installer.sh"
+    - curtin in-target --target=/target -- bash -c "chmod +x /root/intune-installer.sh"
+    - curtin in-target --target=/target -- bash -c "HOME=/root USER=root LOGNAME=root timeout 1800 bash /root/intune-installer.sh > /var/log/intune-installer.log 2>&1 || true"
+
+   # 7) Kiosk install
+    - curtin in-target --target=/target -- bash -c "export DEBIAN_FRONTEND=noninteractive; timeout 1200 apt-get install -y gnome-kiosk"
+
+    # Ensure testuser exists + home
+    - curtin in-target --target=/target -- bash -c "id -u testuser >/dev/null 2>&1 || useradd -m -s /bin/bash testuser"
+    - curtin in-target --target=/target -- bash -c "mkdir -p /home/testuser && chown -R testuser:testuser /home/testuser"
+
+    # Pull kiosk script from local PXE web (NOT GitHub), then run
+    - curtin in-target --target=/target -- bash -c "timeout 120 curl -fsSL http://10.138.191.15/autoinstall-kiosk/kiosk.sh -o /root/kiosk-postinstall.sh"
+    - curtin in-target --target=/target -- bash -c "chmod +x /root/kiosk-postinstall.sh && /bin/bash /root/kiosk-postinstall.sh || true"
+
+    # Set plain password for testuser (final)
+    - curtin in-target --target=/target -- bash -c "echo 'testuser:Strongpassword123!' | chpasswd"
+    - curtin in-target --target=/target -- usermod -U testuser || true
